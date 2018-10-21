@@ -1,5 +1,6 @@
 // Import node modules.
 import BodyParser from 'body-parser';
+import BSON from 'bson';
 import Cryptr from 'cryptr';
 import Express from 'express';
 import FileAsync from 'lowdb/adapters/FileAsync';
@@ -34,8 +35,8 @@ if (DB_CONFIG.SECRET.length > 0) {
   const Key = new Cryptr(DB_CONFIG.SECRET);
 
   _.assign(Encryption, {
-    serialize: data => Key.encrypt(JSON.stringify(data)),
-    deserialize: data => JSON.parse(Key.decrypt(data))
+    serialize: data => Key.encrypt(BSON.serialize(data)),
+    deserialize: data => BSON.deserialize(Key.decrypt(data))
   });
 }
 
@@ -48,7 +49,7 @@ _.forEach(DB_CONFIG.COLLECTIONS, element => {
   _.forEach(element, (object, key) => {
     // Create new adapter for LowDB to read/write.
     // Encrypt/decrypt corresponding collection file.
-    const Adapter = new FileAsync(`${DB_CONFIG.LOCATION}/${key}.json`, Encryption);
+    const Adapter = new FileAsync(`${DB_CONFIG.LOCATION}/${key}.bson`, Encryption);
 
     // Use adapter for LowDB instance.
     // Set defaults and write new collection file if none exists.
